@@ -99,38 +99,40 @@ App.prototype = {
 
 	receiveMessages: function(){
 
-		this.messaging.onMessage(function(msg) {
+		this.messaging.onMessage(function(response) {
 
-			msg = msg.notification.body;
+			var msg = response.notification.body,
+				language = response.data.lang,
+				userID = response.data.id;
 
 			console.log('Message received: "' + msg + '"');
 
-			this.publishMessage(msg);
+			this.publishMessage(msg, language, userID);
 
 		}.bind(this));
 
 	},
 
-	publishMessage: function(msg){
+	publishMessage: function(msg, language, userID){
 
-		var isOwnMsg = msg !== this.recognitionResult,
+		var isOwnMsg = this.token.indexOf(userID) !== -1,
 			label = isOwnMsg ? '<strong class="own">You say: </strong>' : '<strong>Somebody says: </strong>';
 
 		document.querySelector('h1').style.display = 'none';
 
 		document.querySelector('#messages').innerHTML += '<li>' + label + '"' + msg + '"</li>';
 
-		if(!isOwnMsg){ this.sayMessage(msg); }
+		if(!isOwnMsg){ this.sayMessage(msg, language); }
 
 	},
 
-	sayMessage: function(msg){
+	sayMessage: function(msg, language){
 
 		this.stopRecognition();
 
 		var utter = new SpeechSynthesisUtterance(msg);
 
-		utter.lang = this.language;
+		utter.lang = language;
 
 		utter.addEventListener('end', this.restartRecognition.bind(this));
 
@@ -174,11 +176,11 @@ App.prototype = {
 
 			if(event.results[i].isFinal){
 
-				this.recognitionResult = event.results[i][0].transcript;
+				var recognitionResult = event.results[i][0].transcript;
 
-				console.log('Message recongnized: "' + this.recognitionResult + '"');
+				console.log('Message recongnized: "' + recognitionResult + '"');
 
-				this.sendMessage();
+				this.sendMessage(recognitionResult);
 
 			}
 
@@ -186,14 +188,9 @@ App.prototype = {
 
 	},
 
-	sendMessage: function(){
+	sendMessage: function(message){
 
 		console.log('Sending the message');
-
-		var notification = {
-			'title': 'New message',
-			'body': this.recognitionResult
-		};
 
 		fetch('https://fcm.googleapis.com/fcm/send', {
 			'method': 'POST',
@@ -202,7 +199,14 @@ App.prototype = {
 				'Content-Type': 'application/json'
 			},
 			'body': JSON.stringify({
-				'notification': notification,
+				'notification': {
+					'title': 'New message',
+					'body': message
+				},
+				'data': {
+					'lang': this.language,
+					'id': this.token.slice(0, 5)
+				},
 				'to': '/topics/' + this.topic
 			})
 		}).then(function() {
