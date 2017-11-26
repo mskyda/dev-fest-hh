@@ -82,9 +82,9 @@ App.prototype = {
 		var fetchUrl = 'https://iid.googleapis.com/iid/v1/' + this.token + '/rel/topics/' + this.topic;
 
 		fetch(fetchUrl, {
-			'method': 'POST',
-			'headers': {
-				'Authorization': 'key=' + this.appKey,
+			method: 'POST',
+			headers: {
+				Authorization: 'key=' + this.appKey,
 				'Content-Type': 'application/json'
 			}
 		}).then(function() {
@@ -101,28 +101,26 @@ App.prototype = {
 
 		this.messaging.onMessage(function(response) {
 
-			var msg = response.notification.body,
-				language = response.data.lang,
-				userID = response.data.id;
+			var msg = response.notification.body;
 
 			console.log('Message received: "' + msg + '"');
 
-			this.publishMessage(msg, language, userID);
+			this.publishMessage(msg, response.data);
 
 		}.bind(this));
 
 	},
 
-	publishMessage: function(msg, language, userID){
+	publishMessage: function(msg, data){
 
-		var isOwnMsg = this.token.indexOf(userID) !== -1,
-			label = isOwnMsg ? '<strong class="own">You say: </strong>' : '<strong>Somebody says: </strong>';
+		var isOwnMsg = this.token.indexOf(data.id) === -1,
+			label = isOwnMsg ? '<strong class="own">You say: </strong>' : '<strong>' + data.userName + ' says: </strong>';
 
 		document.querySelector('h1').style.display = 'none';
 
 		document.querySelector('#messages').innerHTML += '<li>' + label + '"' + msg + '"</li>';
 
-		if(!isOwnMsg){ this.sayMessage(msg, language); }
+		if(!isOwnMsg){ this.sayMessage(msg, data.lang); }
 
 	},
 
@@ -192,22 +190,25 @@ App.prototype = {
 
 		console.log('Sending the message');
 
+		var userName = document.querySelector('#username').value || 'Anonymous';
+
 		fetch('https://fcm.googleapis.com/fcm/send', {
-			'method': 'POST',
-			'headers': {
-				'Authorization': 'key=' + this.appKey,
+			method: 'POST',
+			headers: {
+				Authorization: 'key=' + this.appKey,
 				'Content-Type': 'application/json'
 			},
-			'body': JSON.stringify({
-				'notification': {
-					'title': 'New message',
-					'body': message
+			body: JSON.stringify({
+				notification: {
+					title: 'New message from ' + userName,
+					body: message
 				},
-				'data': {
-					'lang': this.language,
-					'id': this.token.slice(0, 5)
+				data: {
+					lang: this.language,
+					id: this.token.slice(0, 5),
+					userName: userName
 				},
-				'to': '/topics/' + this.topic
+				to: '/topics/' + this.topic
 			})
 		}).then(function() {
 
