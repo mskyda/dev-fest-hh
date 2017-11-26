@@ -113,12 +113,18 @@ App.prototype = {
 
 	publishMessage: function(msg, data){
 
-		var isOwnMsg = this.token.indexOf(data.id) === -1,
-			label = isOwnMsg ? '<strong class="own">You say: </strong>' : '<strong>' + data.userName + ' says: </strong>';
+		var isOwnMsg = this.token.indexOf(data.id) !== -1,
+			time = new Date().toLocaleTimeString(), label;
+
+		if(isOwnMsg){
+			label = '<span class="own">[' + time + '] I say: </span>';
+		} else {
+			label = '<span>[' + time + '] ' + data.userName + ' says: </span>';
+		}
 
 		document.querySelector('h1').style.display = 'none';
 
-		document.querySelector('#messages').innerHTML += '<li>' + label + '"' + msg + '"</li>';
+		document.querySelector('#messages').innerHTML += '<li>' + label + '' + msg + '</li>';
 
 		if(!isOwnMsg){ this.sayMessage(msg, data.lang); }
 
