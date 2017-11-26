@@ -64,8 +64,61 @@ App.prototype = {
 				'Content-Type': 'application/json'
 			}
 		}).then(function() {
+
 			console.log('Listening topic: "' + this.topic + '"');
+
+			this.receiveMessages();
+
 		}.bind(this));
+
+	},
+
+	receiveMessages: function(){
+
+		this.messaging.onMessage(function(msg) {
+
+			msg = msg.notification.body;
+
+			console.log('Message received: "' + msg + '"');
+
+			this.publishMessage(msg);
+
+		}.bind(this));
+
+	},
+
+	publishMessage: function(msg){
+
+		var isOwnMsg = msg === this.recognitionResult,
+			label = isOwnMsg ? '<span class="own">You say: </span>' : '<span>Somebody says: </span>';
+
+		document.querySelector('#messages').innerHTML += '<li>' + label + '"' + msg + '"</li>';
+
+		if(!isOwnMsg){ this.sayMessage(msg); }
+
+	},
+
+	sayMessage: function(msg){
+
+		this.recognition.removeEventListener('end', this.recognition.start);
+
+		this.recognition.abort();
+
+		var utter = new SpeechSynthesisUtterance(msg);
+
+		utter.lang = 'en-EN';
+
+		utter.addEventListener('end', function () {
+
+			this.recognition.addEventListener('end', this.recognition.start);
+
+			this.recognition.start();
+
+		}.bind(this));
+
+		var delayed = function(){ this.synth.speak(utter); }.bind(this);
+
+		setTimeout(delayed, 1);
 
 	},
 
@@ -74,7 +127,7 @@ App.prototype = {
 		this.recognition.lang = 'en-EN';
 		this.recognition.continuous = false;
 		this.recognition.interimResults = false;
-		this.recognition.addEventListener('result', this.onRecognitionResult);
+		this.recognition.addEventListener('result', this.onRecognitionResult.bind(this));
 		this.recognition.addEventListener('end', this.recognition.start);
 
 		this.recognition.start();
@@ -87,11 +140,42 @@ App.prototype = {
 
 			if(event.results[i].isFinal){
 
-				console.log(event.results[i][0].transcript);
+				this.recognitionResult = event.results[i][0].transcript;
+
+				console.log('Message recongnized: "' + this.recognitionResult + '"');
+
+				this.sendMessage();
 
 			}
 
 		}
+
+	},
+
+	sendMessage: function(){
+
+		console.log('Sending the message');
+
+		var notification = {
+			'title': 'New message',
+			'body': this.recognitionResult
+		};
+
+		fetch('https://fcm.googleapis.com/fcm/send', {
+			'method': 'POST',
+			'headers': {
+				'Authorization': 'key=' + this.appKey,
+				'Content-Type': 'application/json'
+			},
+			'body': JSON.stringify({
+				'notification': notification,
+				'to': '/topics/' + this.topic
+			})
+		}).then(function() {
+
+			console.log('Message sent');
+
+		});
 
 	}
 
