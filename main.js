@@ -39,7 +39,7 @@ App.prototype = {
 
 			var delayed = this.restartRecognition.bind(this);
 
-			setTimeout(delayed, 1);
+			setTimeout(delayed, 100);
 
 		}.bind(this));
 
@@ -114,17 +114,10 @@ App.prototype = {
 	publishMessage: function(msg, data){
 
 		var isOwnMsg = this.token.indexOf(data.id) !== -1,
-			time = new Date().toLocaleTimeString(), label;
+			time = new Date().toLocaleTimeString(),
+			label =  '<span>[' + time + '] ' + (isOwnMsg ? 'I say: ' : data.userName + ' says: ') + '</span>';
 
-		if(isOwnMsg){
-			label = '<span class="own">[' + time + '] I say: </span>';
-		} else {
-			label = '<span>[' + time + '] ' + data.userName + ' says: </span>';
-		}
-
-		document.querySelector('h1').style.display = 'none';
-
-		document.querySelector('#messages').innerHTML += '<li>' + label + '' + msg + '</li>';
+		document.querySelector('#messages').innerHTML += '<li ' + (isOwnMsg ? 'class="own"' : '') + '>' + label + msg + '</li>';
 
 		if(!isOwnMsg){ this.sayMessage(msg, data.lang); }
 
@@ -142,7 +135,7 @@ App.prototype = {
 
 		var delayed = function(){ this.synth.speak(utter); }.bind(this);
 
-		setTimeout(delayed, 1);
+		setTimeout(delayed, 100);
 
 	},
 

@@ -1,9 +1,8 @@
-body{padding: 20px;}
-h1{
-	text-align: center;
-	color: #009;
-	font: bold 60px/80px Helvetica, sans-serif;
-	margin: 100px 0 0;
+html,
+body{min-height: 100%;}
+body{
+	padding: 20px;
+	background: #bbeaf4 url('bg.jpg') center center no-repeat;
 }
 #language,
 #username{
@@ -14,15 +13,22 @@ h1{
 	padding: 0 0 0 10px;
 	margin: 0 20px 0 0;
 	border-radius: 5px;
+	background: none;
+	color: #777;
 }
 #messages{
 	list-style: none;
-	margin: 0;
+	margin: 40px 0 0;
 	padding: 0;
 	font: bold 20px/30px Helvetica, sans-serif;
 }
+#messages li{
+	text-align: right;
+	width: 100%;
+}
+#messages li.own{text-align: left;}
 #messages span{
 	color: #009;
 	font-weight: normal;
 }
-#messages span.own{color: #900;}
+#messages .own span{color: #900;}
