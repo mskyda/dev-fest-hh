@@ -11,9 +11,39 @@ App.prototype = {
 
 	init: function(){
 
+		console.log('Init App');
+
 		this.messaging = window.firebase.messaging();
 		this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition);
 		this.synth = window.speechSynthesis;
+
+		this.requestPermission();
+
+	},
+
+	requestPermission: function(){
+
+		console.log('Requesting permission');
+
+		this.messaging.requestPermission().then(function(){
+
+			console.log('Notification permission granted');
+
+			this.requestToken();
+
+		}.bind(this));
+
+	},
+
+	requestToken: function(){
+
+		console.log('Requesting Token');
+
+		this.messaging.getToken().then(function(token) {
+
+			console.log('Received token: ' + token);
+
+		});
 
 	}
 
