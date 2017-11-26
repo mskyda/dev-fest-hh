@@ -2,7 +2,7 @@ html,
 body{min-height: 100%;}
 body{
 	padding: 20px;
-	background: #bbeaf4 url('bg.jpg') center center no-repeat;
+	background: #bbeaf4 url('assets/bg.jpg') center center no-repeat;
 }
 #language,
 #username{
