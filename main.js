@@ -17,7 +17,31 @@ App.prototype = {
 		this.recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition);
 		this.synth = window.speechSynthesis;
 
+		this.setLanguage();
+
 		this.requestPermission();
+
+	},
+
+	setLanguage: function(){
+
+		var select = document.querySelector('#language');
+
+		this.language = select.value;
+
+		select.addEventListener('change', function () {
+
+			this.language = select.value;
+
+			this.stopRecognition();
+
+			this.recognition.lang = this.language;
+
+			var delayed = this.restartRecognition.bind(this);
+
+			setTimeout(delayed, 1);
+
+		}.bind(this));
 
 	},
 
@@ -47,7 +71,7 @@ App.prototype = {
 
 			this.listenTopic();
 
-			this.startRecognition();
+			this.setupRecognition();
 
 		}.bind(this));
 
@@ -89,8 +113,10 @@ App.prototype = {
 
 	publishMessage: function(msg){
 
-		var isOwnMsg = msg === this.recognitionResult,
-			label = isOwnMsg ? '<span class="own">You say: </span>' : '<span>Somebody says: </span>';
+		var isOwnMsg = msg !== this.recognitionResult,
+			label = isOwnMsg ? '<strong class="own">You say: </strong>' : '<strong>Somebody says: </strong>';
+
+		document.querySelector('h1').style.display = 'none';
 
 		document.querySelector('#messages').innerHTML += '<li>' + label + '"' + msg + '"</li>';
 
@@ -100,21 +126,13 @@ App.prototype = {
 
 	sayMessage: function(msg){
 
-		this.recognition.removeEventListener('end', this.recognition.start);
-
-		this.recognition.abort();
+		this.stopRecognition();
 
 		var utter = new SpeechSynthesisUtterance(msg);
 
-		utter.lang = 'en-EN';
+		utter.lang = this.language;
 
-		utter.addEventListener('end', function () {
-
-			this.recognition.addEventListener('end', this.recognition.start);
-
-			this.recognition.start();
-
-		}.bind(this));
+		utter.addEventListener('end', this.restartRecognition.bind(this));
 
 		var delayed = function(){ this.synth.speak(utter); }.bind(this);
 
@@ -122,9 +140,25 @@ App.prototype = {
 
 	},
 
-	startRecognition: function(){
+	stopRecognition: function(){
 
-		this.recognition.lang = 'en-EN';
+		this.recognition.removeEventListener('end', this.recognition.start);
+
+		this.recognition.abort();
+
+	},
+
+	restartRecognition: function(){
+
+		this.recognition.addEventListener('end', this.recognition.start);
+
+		this.recognition.start();
+
+	},
+
+	setupRecognition: function(){
+
+		this.recognition.lang = this.language;
 		this.recognition.continuous = false;
 		this.recognition.interimResults = false;
 		this.recognition.addEventListener('result', this.onRecognitionResult.bind(this));

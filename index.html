@@ -3,13 +3,20 @@
 	<head>
 		<meta charset=utf-8 />
 		<link rel="shortcut icon" href="favicon.ico">
+		<link id="css" href="style.css" rel="stylesheet" type="text/css">
 		<title>Voice Web Chat</title>
 	</head>
 	<body>
-	<ul id="messages"></ul>
-	<script src="/__/firebase/3.9.0/firebase-app.js"></script>
-	<script src="/__/firebase/3.9.0/firebase-messaging.js"></script>
-	<script src="/__/firebase/init.js"></script>
-	<script src="main.js"></script>
+		<select id="language">
+			<option value="en-EN" selected>EN</option>
+			<option value="de-DE">DE</option>
+			<option value="ru-RU">RU</option>
+		</select>
+		<h1>Say something :)</h1>
+		<ul id="messages"></ul>
+		<script src="/__/firebase/3.9.0/firebase-app.js"></script>
+		<script src="/__/firebase/3.9.0/firebase-messaging.js"></script>
+		<script src="/__/firebase/init.js"></script>
+		<script src="main.js"></script>
 	</body>
 </html>
